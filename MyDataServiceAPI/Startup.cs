@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -12,6 +13,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using MyDataServiceAPI.Services;
 using MyDataServiceAPI.Utils;
+using Polly;
+using Polly.Extensions.Http;
 
 namespace MyDataServiceAPI
 {
@@ -29,14 +32,14 @@ namespace MyDataServiceAPI
         {
             services.AddControllers();
 
-            services.AddSwaggerGen();            
+            services.AddSwaggerGen();
 
             services.AddHttpClient<IMyDataService, MyDataService>("httpClient", c =>
             {
                 c.BaseAddress = new Uri(Consts.baseUri);
                 c.DefaultRequestHeaders.Add("aade-user-id", Consts.username);
                 c.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", Consts.subscriptionKey);
-            });
+            }).AddPolicyHandler(GetRetryPolicy());
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -64,6 +67,14 @@ namespace MyDataServiceAPI
             {
                 endpoints.MapControllers();
             });
+        }
+
+        static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
+        {
+            return HttpPolicyExtensions
+                .HandleTransientHttpError()
+                .OrResult(msg => msg.StatusCode == System.Net.HttpStatusCode.NotFound)
+                .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
         }
     }
 }
