@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30523.141
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyDataServiceAPI", "MyDataServiceAPI\MyDataServiceAPI.csproj", "{5BA4BC68-03E5-4784-A4D8-E7496D440ACF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5BA4BC68-03E5-4784-A4D8-E7496D440ACF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5BA4BC68-03E5-4784-A4D8-E7496D440ACF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5BA4BC68-03E5-4784-A4D8-E7496D440ACF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5BA4BC68-03E5-4784-A4D8-E7496D440ACF}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {ACF29F20-245F-4265-AEB7-7089A9D99DE4}
+	EndGlobalSection
+EndGlobal
