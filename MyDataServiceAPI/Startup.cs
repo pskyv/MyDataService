@@ -11,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using MyDataServiceAPI.Services;
+using MyDataServiceAPI.Utils;
 
 namespace MyDataServiceAPI
 {
@@ -28,9 +29,14 @@ namespace MyDataServiceAPI
         {
             services.AddControllers();
 
-            services.AddSwaggerGen();
+            services.AddSwaggerGen();            
 
-            services.AddScoped<IMyDataService, MyDataService>();
+            services.AddHttpClient<IMyDataService, MyDataService>("httpClient", c =>
+            {
+                c.BaseAddress = new Uri(Consts.baseUri);
+                c.DefaultRequestHeaders.Add("aade-user-id", Consts.username);
+                c.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", Consts.subscriptionKey);
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

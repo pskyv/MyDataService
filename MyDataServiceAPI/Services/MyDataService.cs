@@ -14,32 +14,32 @@ using System.Xml.Serialization;
 namespace MyDataServiceAPI.Services
 {
     public class MyDataService : IMyDataService
-    {        
+    {
+        private readonly HttpClient _httpClient;
+
+        public MyDataService(HttpClient httpClient)
+        {
+            _httpClient = httpClient;
+        }
+
         public async Task<RequestedDoc> GetInvoices(QueryParameters queryParameters)
         {
-            using (var client = new HttpClient())
+            var queryString = HttpUtility.ParseQueryString(string.Empty);
+            queryString["mark"] = queryParameters.Mark;
+            if (queryParameters.ContinuationToken != null)
             {
-                // Request headers
-                client.DefaultRequestHeaders.Add("aade-user-id", Consts.username);
-                client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", Consts.subscriptionKey);
-                
-                var queryString = HttpUtility.ParseQueryString(string.Empty);
-                queryString["mark"] = queryParameters.Mark;
-                if (queryParameters.ContinuationToken != null)
-                {
-                    queryString["nextPartitionKey"] = queryParameters.ContinuationToken.NextPartitionKey;
-                    queryString["nextRowKey"] = queryParameters.ContinuationToken.NextRowKey;
-                }
-                var uri = Consts.baseUri + "/RequestTransmittedDocs?" + queryString;
+                queryString["nextPartitionKey"] = queryParameters.ContinuationToken.NextPartitionKey;
+                queryString["nextRowKey"] = queryParameters.ContinuationToken.NextRowKey;
+            }
+            var uri = Consts.baseUri + "/RequestTransmittedDocs?" + queryString;
 
-                var response = await client.GetAsync(uri);
+            var response = await _httpClient.GetAsync(uri);
 
-                if (response.IsSuccessStatusCode)
-                {
-                    var responseStream = await response.Content.ReadAsStreamAsync();
-                    XmlSerializer xmlSerializer = new XmlSerializer(typeof(RequestedDoc));
-                    return (RequestedDoc)xmlSerializer.Deserialize(responseStream);
-                }
+            if (response.IsSuccessStatusCode)
+            {
+                var responseStream = await response.Content.ReadAsStreamAsync();
+                XmlSerializer xmlSerializer = new XmlSerializer(typeof(RequestedDoc));
+                return (RequestedDoc)xmlSerializer.Deserialize(responseStream);
             }
 
             return null;
@@ -48,26 +48,20 @@ namespace MyDataServiceAPI.Services
         public async Task<ResponseDoc> SendInvoices()
         {
             HttpResponseMessage response;
-            using (var client = new HttpClient())
+
+            var uri = Consts.baseUri + "/SendInvoices";
+
+            // Request body
+            var xmlBody = await CreateInvoicesDoc();
+
+            var content = new StringContent(xmlBody, Encoding.UTF8, "text/xml");
+            response = await _httpClient.PostAsync(uri, content);
+
+            if (response.IsSuccessStatusCode)
             {
-                // Request headers
-                client.DefaultRequestHeaders.Add("aade-user-id", Consts.username);
-                client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", Consts.subscriptionKey);
-
-                var uri = Consts.baseUri + "/SendInvoices";
-
-                // Request body
-                var xmlBody = await CreateInvoicesDoc();
-
-                var content = new StringContent(xmlBody, Encoding.UTF8, "text/xml");
-                response = await client.PostAsync(uri, content);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var responseStream = await response.Content.ReadAsStreamAsync();
-                    XmlSerializer xmlSerializer = new XmlSerializer(typeof(ResponseDoc));                    
-                    return (ResponseDoc)xmlSerializer.Deserialize(responseStream);
-                }
+                var responseStream = await response.Content.ReadAsStreamAsync();
+                XmlSerializer xmlSerializer = new XmlSerializer(typeof(ResponseDoc));
+                return (ResponseDoc)xmlSerializer.Deserialize(responseStream);
             }
 
             return null;
@@ -76,25 +70,19 @@ namespace MyDataServiceAPI.Services
         public async Task<ResponseDoc> CancelInvoice(string mark)
         {
             HttpResponseMessage response;
-            using (var client = new HttpClient())
+
+            var queryString = HttpUtility.ParseQueryString(string.Empty);
+            queryString["mark"] = mark;
+
+            var uri = Consts.baseUri + "/CancelInvoice?" + queryString;
+
+            response = await _httpClient.PostAsync(uri, null);
+
+            if (response.IsSuccessStatusCode)
             {
-                // Request headers
-                client.DefaultRequestHeaders.Add("aade-user-id", Consts.username);
-                client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", Consts.subscriptionKey);
-
-                var queryString = HttpUtility.ParseQueryString(string.Empty);
-                queryString["mark"] = mark;
-
-                var uri = Consts.baseUri + "/CancelInvoice?" + queryString;
-
-                response = await client.PostAsync(uri, null);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var responseStream = await response.Content.ReadAsStreamAsync();
-                    XmlSerializer xmlSerializer = new XmlSerializer(typeof(ResponseDoc));
-                    return (ResponseDoc)xmlSerializer.Deserialize(responseStream);
-                }
+                var responseStream = await response.Content.ReadAsStreamAsync();
+                XmlSerializer xmlSerializer = new XmlSerializer(typeof(ResponseDoc));
+                return (ResponseDoc)xmlSerializer.Deserialize(responseStream);
             }
 
             return null;
@@ -105,7 +93,7 @@ namespace MyDataServiceAPI.Services
             InvoicesDoc invoicesDoc = new InvoicesDoc();
             invoicesDoc.invoice = new AadeBookInvoiceType[1];
             invoicesDoc.invoice[0] = new AadeBookInvoiceType
-            {                
+            {
                 invoiceHeader = new InvoiceHeaderType
                 {
                     series = "ΑΠΥ",
@@ -181,7 +169,7 @@ namespace MyDataServiceAPI.Services
             serializer.Serialize(stream, invoicesDoc);
             stream.Position = 0;
             StreamReader reader = new StreamReader(stream);
-            return reader.ReadToEndAsync();            
+            return reader.ReadToEndAsync();
         }
     }
 }
