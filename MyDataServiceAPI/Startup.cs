@@ -38,8 +38,8 @@ namespace MyDataServiceAPI
             services.AddHttpClient<IMyDataService, MyDataService>("httpClient", c =>
             {
                 c.BaseAddress = new Uri(Consts.baseUri);
-                c.DefaultRequestHeaders.Add("aade-user-id", Consts.username);
-                c.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", Consts.subscriptionKey);
+                c.DefaultRequestHeaders.Add("aade-user-id", Configuration["MyDataApiCredentials:ApiUsername"]);
+                c.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", Configuration["MyDataApiCredentials:ApiSubscriptionKey"]);
             })
                 .AddTypedClient(c => RestService.For<IMyDataApi>(c, 
                     new RefitSettings
