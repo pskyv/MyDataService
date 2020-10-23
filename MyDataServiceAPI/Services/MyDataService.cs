@@ -1,5 +1,6 @@
 ﻿using MyDataServiceAPI.Models;
 using MyDataServiceAPI.Utils;
+using Refit;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -16,10 +17,12 @@ namespace MyDataServiceAPI.Services
     public class MyDataService : IMyDataService
     {
         private readonly HttpClient _httpClient;
+        private readonly IMyDataApi _myDataApi;
 
-        public MyDataService(HttpClient httpClient)
+        public MyDataService(HttpClient httpClient, IMyDataApi myDataApi)
         {
             _httpClient = httpClient;
+            _myDataApi = myDataApi;
         }
 
         public async Task<RequestedDoc> GetInvoices(QueryParameters queryParameters)
@@ -45,6 +48,19 @@ namespace MyDataServiceAPI.Services
             return null;
         }
 
+        public async Task<RequestedDoc> GetInvoicesWithRefit(QueryParameters queryParameters)
+        {
+            if (queryParameters.ContinuationToken != null)
+            {
+                return await _myDataApi.GetPagedInvoices(queryParameters.Mark, queryParameters.ContinuationToken.NextPartitionKey, queryParameters.ContinuationToken.NextRowKey);
+            }
+
+            else
+            {
+                return await _myDataApi.GetInvoices(queryParameters.Mark);
+            }
+        }
+
         public async Task<ResponseDoc> SendInvoices()
         {
             HttpResponseMessage response;
@@ -67,6 +83,14 @@ namespace MyDataServiceAPI.Services
             return null;
         }
 
+        public async Task<ResponseDoc> SendInvoicesWithRefit()
+        {
+            var xmlBody = await CreateInvoicesDoc();
+            var content = new StringContent(xmlBody, Encoding.UTF8, "text/xml");
+
+            return await _myDataApi.SendInvoices(content);
+        }
+
         public async Task<ResponseDoc> CancelInvoice(string mark)
         {
             HttpResponseMessage response;
@@ -86,6 +110,11 @@ namespace MyDataServiceAPI.Services
             }
 
             return null;
+        }
+
+        public async Task<ResponseDoc> CancelInvoiceWithRefit(string mark)
+        {
+            return await _myDataApi.CancelInvoice(mark);
         }
 
         private Task<string> CreateInvoicesDoc()

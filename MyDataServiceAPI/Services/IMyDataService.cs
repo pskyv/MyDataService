@@ -10,7 +10,10 @@ namespace MyDataServiceAPI.Services
     public interface IMyDataService
     {
         Task<RequestedDoc> GetInvoices(QueryParameters queryParameters);
+        Task<RequestedDoc> GetInvoicesWithRefit(QueryParameters queryParameters);
         Task<ResponseDoc> SendInvoices();
+        Task<ResponseDoc> SendInvoicesWithRefit();
         Task<ResponseDoc> CancelInvoice(string mark);
+        Task<ResponseDoc> CancelInvoiceWithRefit(string mark);
     }
 }

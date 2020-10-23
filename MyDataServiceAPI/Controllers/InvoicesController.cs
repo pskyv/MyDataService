@@ -26,7 +26,7 @@ namespace MyDataServiceAPI.Controllers
             {
                 if (!string.IsNullOrEmpty(queryParameters.Mark))
                 {
-                    var result = await _myDataService.GetInvoices(queryParameters);
+                    var result = await _myDataService.GetInvoicesWithRefit(queryParameters);
                     if (result?.invoicesDoc != null && result.invoicesDoc.invoice.Any())
                     {
                         return Ok(result);
@@ -53,7 +53,7 @@ namespace MyDataServiceAPI.Controllers
         {
             try
             {
-                return Ok(await _myDataService.SendInvoices());
+                return Ok(await _myDataService.SendInvoicesWithRefit());
 
             }
             catch (Exception ex)
@@ -68,7 +68,7 @@ namespace MyDataServiceAPI.Controllers
         {
             try
             {
-                return Ok(await _myDataService.CancelInvoice(mark));
+                return Ok(await _myDataService.CancelInvoiceWithRefit(mark));
 
             }
             catch (Exception ex)

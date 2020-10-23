@@ -15,6 +15,7 @@ using MyDataServiceAPI.Services;
 using MyDataServiceAPI.Utils;
 using Polly;
 using Polly.Extensions.Http;
+using Refit;
 
 namespace MyDataServiceAPI
 {
@@ -39,7 +40,14 @@ namespace MyDataServiceAPI
                 c.BaseAddress = new Uri(Consts.baseUri);
                 c.DefaultRequestHeaders.Add("aade-user-id", Consts.username);
                 c.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", Consts.subscriptionKey);
-            }).AddPolicyHandler(GetRetryPolicy());
+            })
+                .AddTypedClient(c => RestService.For<IMyDataApi>(c, 
+                    new RefitSettings
+                    {
+                        ContentSerializer = new XmlContentSerializer()
+                    }
+                ))
+                .AddPolicyHandler(GetRetryPolicy());
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
