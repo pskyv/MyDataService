@@ -11,7 +11,7 @@ namespace MyDataServiceAPI.Services
     {
         Task<RequestedDoc> GetInvoices(QueryParameters queryParameters);
         Task<RequestedDoc> GetInvoicesWithRefit(QueryParameters queryParameters);
-        Task<ResponseDoc> SendInvoices();
+        Task<ResponseDoc> SendInvoices(InvoicesDoc invoicesDoc);
         Task<ResponseDoc> SendInvoicesWithRefit();
         Task<ResponseDoc> CancelInvoice(string mark);
         Task<ResponseDoc> CancelInvoiceWithRefit(string mark);

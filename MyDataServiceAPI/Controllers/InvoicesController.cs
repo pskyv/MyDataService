@@ -49,11 +49,11 @@ namespace MyDataServiceAPI.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> SendInvoices()
+        public async Task<IActionResult> SendInvoices([FromBody] InvoicesDoc invoicesDoc)
         {
             try
             {
-                return Ok(await _myDataService.SendInvoicesWithRefit());
+                return Ok(await _myDataService.SendInvoices(invoicesDoc));
 
             }
             catch (Exception ex)

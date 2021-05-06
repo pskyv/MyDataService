@@ -1,12 +1,8 @@
 ﻿using MyDataServiceAPI.Models;
 using MyDataServiceAPI.Utils;
-using Refit;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
@@ -61,14 +57,27 @@ namespace MyDataServiceAPI.Services
             }
         }
 
-        public async Task<ResponseDoc> SendInvoices()
+        public async Task<ResponseDoc> SendInvoices(InvoicesDoc invoicesDoc)
         {
             HttpResponseMessage response;
 
             var uri = Consts.baseUri + "/SendInvoices";
+            string xmlBody = string.Empty;
 
             // Request body
-            var xmlBody = await CreateInvoicesDoc();
+            if (invoicesDoc == null)
+            {
+                xmlBody = await CreateInvoicesDoc();
+            }
+            else
+            {
+                XmlSerializer serializer = new XmlSerializer(typeof(InvoicesDoc));
+                MemoryStream stream = new MemoryStream();
+                serializer.Serialize(stream, invoicesDoc);
+                stream.Position = 0;
+                StreamReader reader = new StreamReader(stream);
+                xmlBody = await reader.ReadToEndAsync();
+            }                        
 
             var content = new StringContent(xmlBody, Encoding.UTF8, "text/xml");
             response = await _httpClient.PostAsync(uri, content);
@@ -120,13 +129,85 @@ namespace MyDataServiceAPI.Services
         private Task<string> CreateInvoicesDoc()
         {
             InvoicesDoc invoicesDoc = new InvoicesDoc();
-            invoicesDoc.invoice = new AadeBookInvoiceType[1];
+            invoicesDoc.invoice = new AadeBookInvoiceType[2];
             invoicesDoc.invoice[0] = new AadeBookInvoiceType
             {
                 invoiceHeader = new InvoiceHeaderType
                 {
                     series = "ΑΠΥ",
-                    aa = "0001",
+                    aa = "0005",
+                    issueDate = DateTime.Now,
+                    invoiceType = InvoiceType.Item11,
+                    currency = CurrencyType.EUR,
+                    currencySpecified = true
+                },
+                issuer = new PartyType
+                {
+                    vatNumber = "104702679",
+                    country = CountryType.GR,
+                    branch = 0
+                },
+                counterpart = new PartyType
+                {
+                    vatNumber = "122675042",
+                    country = CountryType.GR,
+                    branch = 0
+                },
+                paymentMethods = new PaymentMethodDetailType[]
+                {
+                    new PaymentMethodDetailType
+                    {
+                        type = 3,
+                        amount = 124
+                    }
+                },
+                invoiceDetails = new InvoiceRowType[]
+                {
+                    new InvoiceRowType
+                    {
+                        lineNumber = 1,
+                        netValue = 100,
+                        vatCategory = 1,
+                        vatAmount = 24,
+                        incomeClassification = new IncomeClassificationType[]
+                        {
+                            new IncomeClassificationType
+                            {
+                                classificationType = IncomeClassificationValueType.E3_561_007,
+                                classificationCategory = IncomeClassificationCategoryType.category1_3,
+                                amount = 100
+                            }
+                        }
+                    }
+                },
+                invoiceSummary = new InvoiceSummaryType
+                {
+                    totalNetValue = 100,
+                    totalVatAmount = 24,
+                    totalWithheldAmount = 0,
+                    totalFeesAmount = 0,
+                    totalStampDutyAmount = 0,
+                    totalOtherTaxesAmount = 0,
+                    totalDeductionsAmount = 0,
+                    totalGrossValue = 124,
+                    incomeClassification = new IncomeClassificationType[]
+                    {
+                        new IncomeClassificationType
+                        {
+                            classificationType = IncomeClassificationValueType.E3_561_007,
+                            classificationCategory = IncomeClassificationCategoryType.category1_3,
+                            amount = 100
+                        }
+                    }
+                }
+            };
+
+            invoicesDoc.invoice[1] = new AadeBookInvoiceType
+            {
+                invoiceHeader = new InvoiceHeaderType
+                {
+                    series = "ΑΠΥ",
+                    aa = "0006",
                     issueDate = DateTime.Now,
                     invoiceType = InvoiceType.Item11,
                     currency = CurrencyType.EUR,
